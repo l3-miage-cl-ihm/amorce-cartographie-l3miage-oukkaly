@@ -6,6 +6,8 @@ import { MapOptions, tileLayer, LatLng, LatLngLiteral, marker, icon, Icon, Leafl
 import { OpenRouteService } from './services/open-route.service';
 import { firstValueFrom } from 'rxjs';
 
+
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -14,14 +16,14 @@ import { firstValueFrom } from 'rxjs';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  
+
   readonly defaultIcon = computed( () => icon({
     ...Icon.Default.prototype.options,
     iconUrl: 'assets/marker-icon.png',
     iconRetinaUrl: 'assets/marker-icon-2x.png',
     shadowUrl: 'assets/marker-shadow.png'
   }) );
-  
+
   readonly center = signal<LatLng>( new LatLng(45.166672, 5.71667) );
   readonly zoom = signal<number>(11);
 
@@ -31,8 +33,8 @@ export class AppComponent {
   ]);
   readonly map = tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' });
   readonly sigPlaces = computed(()=> this.places().map( ({lat, lng}) => marker([lat, lng], {icon: this.defaultIcon()}) ));
-  readonly sigRoutes = computed<Polyline[]>(()=> [new Polyline(this.places() as LatLng[], {color: '#0d9148'} as PolylineOptions)]);
-  
+  readonly sigRoutes = signal<Polyline[]>([]/*()=> [new Polyline(this.places() as LatLng[], {color: '#0d9148'} as PolylineOptions)]*/);
+
   readonly layers: Signal<Layer[]> = computed(() => (
     [
       this.map ,
@@ -40,12 +42,12 @@ export class AppComponent {
       ...this.sigRoutes(),
     ]
   ));
-  // polyline 
-  // circle / zone 
+  // polyline
+  // circle / zone
   // isocrone c'est pour voir à partir de coordonnées , combien de temps on met avec un vélo , a pied , transport
 
 
-  // le track by il assure que quand le css il va appliquer une transition à un fragement HTml , 
+  // le track by il assure que quand le css il va appliquer une transition à un fragement HTml ,
   // si le fragement il est fraichement crée -> pas d'état précédent -> il applique pas la transition
 
   constructor(private service: OpenRouteService){
@@ -56,31 +58,71 @@ export class AppComponent {
     this.places.update((places) => [...places,point.latlng]);
   }
 
-  allerVoirEmbrun(): void {
-    this.center.set(new LatLng(44.566672, 6.5));
-    this.zoom.set(13);
-  }
-
-  allerVoirParis(): void {
-    this.center.set(new LatLng(48.856613, 2.352222));
-    this.zoom.set(12);
-  }
-
-  allerVoirUFR(): void {
-    this.center.set(new LatLng(45.19379120519956, 5.768213868141175));
-    this.zoom.set(18);
-  }
-
   removeButton(point: LatLngLiteral){
     this.places.update((points) => points.filter((pnt) => pnt !== point));
   }
 
-  async addRoute(){
+  /*async addRoute(){
     const newLayerEncoded = await firstValueFrom(this.service.getRoute(this.places()));
-    // const poly = require("@mapbox/polyline");
-    // const layer = poly.decode(newLayerEncoded.routes[0].geometry);
+     const poly = require("@mapbox/polyline");
+    const layer = poly.decode(newLayerEncoded.routes[0].geometry);
+    console.log
+    this.sigRoutes.update( (routes) => [...routes,newLayer]);
+  }*/
+  /**
+   * Utilisée pour décoder la ligne geometry renvoyé par l"API OpenRoutes
+   * @param polylineString
+   * @return Tableau de coord GPS
+   */
+  decodePolyline(polylineString: string): LatLngLiteral[] {
+  let index = 0;
+  const len = polylineString.length;
+  let lat = 0;
+  let lng = 0;
+  const coordinates = [];
+
+  while (index < len) {
+    let b;
+    let shift = 0;
+    let result = 0;
+
+    do {
+      b = polylineString.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+
+    const dlat = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
+    lat += dlat;
+
+    shift = 0;
+    result = 0;
+
+    do {
+      b = polylineString.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+
+    const dlng = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
+    lng += dlng;
+
+    coordinates.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+
+  return coordinates;
+}
+
+  /**
+   * Ajoute l'itinéraire entre les 2 premiers points de places à la map
+   */
+  async addRoute(){
+    const newLayerEncoded = await firstValueFrom(this.service.getRoute(this.places()[0], this.places()[1]));
+    const layer = newLayerEncoded.routes.map((val)=>this.decodePolyline(val.geometry));
+    const route = polyline(layer, { color: '#0d9148' });
     // console.log
-    // this.sigRoutes.update( (routes) => [...routes,newLayer]);
+    this.sigRoutes.update( (routes) => [...routes,route]);
+    console.log(Layer);
   }
 
 }

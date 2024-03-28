@@ -2,7 +2,7 @@
 
 <div leaflet
      [leafletLayers]="layers()"
-     
+
      [leafletCenter]="center()" (leafletCenterChange)="center.set($event)"
      [leafletZoom]="zoom()" (leafletZoomChange)="zoom.set($event)"
      (leafletClick)="addMarker($event)"
@@ -23,7 +23,8 @@
     </ul>
   </div>
 </pre>
-
+<!--
 <button (click)="allerVoirEmbrun()">Aller voir à Embrun</button>
 <button (click)="allerVoirParis ()">Aller voir à Paris</button>
 <button (click)="allerVoirUFR()">Aller voir à l'UFR IM²AG</button>
+-->
