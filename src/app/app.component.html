@@ -1,14 +1,27 @@
 <h1>Amorce de code pour utilisation de la cartographie</h1>
 
 <div leaflet
-     [leafletOptions]="options()"
+     [leafletLayers]="layers()"
+     
      [leafletCenter]="center()" (leafletCenterChange)="center.set($event)"
      [leafletZoom]="zoom()" (leafletZoomChange)="zoom.set($event)"
+     (leafletClick)="addMarker($event)"
 ></div>
 
 <hr/>
 <pre>
   Carte centrée en {{center().lat}}, {{center().lng}} avec un zoom de {{zoom()}}
+
+  <button (click)="addRoute()">calcul itinéraire</button>
+</pre>
+
+<pre>
+  points :
+  <div *ngFor="let point of places()">
+    <ul>
+      lat : {{point.lat}} | lng :{{point.lng}} | <button (click)="removeButton(point)">delete</button>
+    </ul>
+  </div>
 </pre>
 
 <button (click)="allerVoirEmbrun()">Aller voir à Embrun</button>
