@@ -33,8 +33,8 @@ export class AppComponent {
   ]);
   readonly map = tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' });
   readonly sigPlaces = computed(()=> this.places().map( ({lat, lng}) => marker([lat, lng], {icon: this.defaultIcon()}) ));
-  readonly sigRoutes = signal<Polyline[]>([]/*()=> [new Polyline(this.places() as LatLng[], {color: '#0d9148'} as PolylineOptions)]*/);
-
+  readonly _sigRoutes = signal<Polyline[]>([]/*()=> [new Polyline(this.places() as LatLng[], {color: '#0d9148'} as PolylineOptions)]*/);
+  readonly sigRoutes = computed(()=> this._sigRoutes());
   readonly layers: Signal<Layer[]> = computed(() => (
     [
       this.map ,
@@ -117,12 +117,11 @@ export class AppComponent {
    * Ajoute l'itinéraire entre les 2 premiers points de places à la map
    */
   async addRoute(){
-    const newLayerEncoded = await firstValueFrom(this.service.getRoute(this.places()[0], this.places()[1]));
+    const newLayerEncoded = await firstValueFrom(this.service.getRoute(this.places()));
     const layer = newLayerEncoded.routes.map((val)=>this.decodePolyline(val.geometry));
     const route = polyline(layer, { color: '#0d9148' });
-    // console.log
-    this.sigRoutes.update( (routes) => [...routes,route]);
-    console.log(Layer);
+    console.log(route)
+    this._sigRoutes.update( (routes) => [...routes,route]);
   }
 
 }

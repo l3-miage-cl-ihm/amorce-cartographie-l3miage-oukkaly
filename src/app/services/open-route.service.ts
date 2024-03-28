@@ -37,10 +37,11 @@ export class OpenRouteService {
    * @param end
    * @return un observable contenant l'itinéraire encodé reliant start et end
    */
-  getRoute(start : LatLngLiteral, end :LatLngLiteral) {
-    const coordStart: string = `[${start.lng}, ${start.lat}]`;
-    const coordEnd: string = `[${end.lng}, ${end.lat}]`;
-    const body = `{"coordinates":[${coordStart}, ${coordEnd}]}`;
+  getRoute(start : LatLngLiteral[]) {
+    const literalToString = start.map( (coor) => `[${coor.lng}, ${coor.lat}]`);
+    // const coordStart: string = `[${start.lng}, ${start.lat}]`;
+    // const coordEnd: string = `[${end.lng}, ${end.lat}]`;
+    const body = `{"coordinates":[${literalToString}]}`;
     const headers = new HttpHeaders({
       'Authorization': '5b3ce3597851110001cf6248792f958cf4884d94ac7ea7ce3958ffaa',
       'Content-Type': 'application/json'
