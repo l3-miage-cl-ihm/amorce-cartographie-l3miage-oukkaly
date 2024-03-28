@@ -27,10 +27,11 @@ export class AppComponent {
   readonly center = signal<LatLng>( new LatLng(45.166672, 5.71667) );
   readonly zoom = signal<number>(11);
 
-  readonly places = signal< LatLngLiteral[]>([
+  readonly _places = signal< LatLngLiteral[]>([
     { lat: 45.193866812447716, lng: 5.768449902534485 }, // UFR IM2AG
     { lat: 45.197866812447716, lng: 5.768449902534485 }, // UFR IM2AG
   ]);
+  readonly places = computed(()=> this._places())
   readonly map = tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' });
   readonly sigPlaces = computed(()=> this.places().map( ({lat, lng}) => marker([lat, lng], {icon: this.defaultIcon()}) ));
   readonly _sigRoutes = signal<Polyline[]>([]/*()=> [new Polyline(this.places() as LatLng[], {color: '#0d9148'} as PolylineOptions)]*/);
@@ -55,11 +56,11 @@ export class AppComponent {
   }
 
   addMarker(point : LeafletMouseEvent){
-    this.places.update((places) => [...places,point.latlng]);
+    this._places.update((places) => [...places,point.latlng]);
   }
 
   removeButton(point: LatLngLiteral){
-    this.places.update((points) => points.filter((pnt) => pnt !== point));
+    this._places.update((points) => points.filter((pnt) => pnt !== point));
   }
 
   /*async addRoute(){
@@ -121,7 +122,7 @@ export class AppComponent {
     const layer = newLayerEncoded.routes.map((val)=>this.decodePolyline(val.geometry));
     const route = polyline(layer, { color: '#0d9148' });
     console.log(route)
-    this._sigRoutes.update( (routes) => [...routes,route]);
+    this._sigRoutes.set([route]);
   }
 
 }
