@@ -1,0 +1,16 @@
+<h1>Amorce de code pour utilisation de la cartographie</h1>
+
+<div leaflet
+     [leafletOptions]="options()"
+     [leafletCenter]="center()" (leafletCenterChange)="center.set($event)"
+     [leafletZoom]="zoom()" (leafletZoomChange)="zoom.set($event)"
+></div>
+
+<hr/>
+<pre>
+  Carte centrée en {{center().lat}}, {{center().lng}} avec un zoom de {{zoom()}}
+</pre>
+
+<button (click)="allerVoirEmbrun()">Aller voir à Embrun</button>
+<button (click)="allerVoirParis ()">Aller voir à Paris</button>
+<button (click)="allerVoirUFR()">Aller voir à l'UFR IM²AG</button>
